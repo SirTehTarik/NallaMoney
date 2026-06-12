@@ -7,6 +7,7 @@ import { SpendingChart } from './components/SpendingChart';
 import { MonthlyTrend } from './components/MonthlyTrend';
 import { BudgetGoal } from './components/BudgetGoal';
 import { SavingsGoalPlanner } from './components/SavingsGoalPlanner';
+import { DataManagement } from './components/DataManagement';
 
 function App() {
   const [transactions, setTransactions] = useState<Transaction[]>(() => {
@@ -81,6 +82,14 @@ function App() {
     setSavingsGoals(prev => prev.filter(g => g.id !== id));
   };
 
+  const handleImportTransactions = (importedTransactions: Transaction[]) => {
+    setTransactions(prev => {
+      const existingIds = new Set(prev.map(t => t.id));
+      const newTransactions = importedTransactions.filter(t => !existingIds.has(t.id));
+      return [...newTransactions, ...prev];
+    });
+  };
+
   return (
     <div style={{ width: '100%' }}>
       <header style={{ marginBottom: '2rem', textAlign: 'center' }}>
@@ -106,6 +115,7 @@ function App() {
         <MonthlyTrend transactions={transactions} />
         <SpendingChart transactions={transactions} />
         <TransactionList transactions={transactions} onDeleteTransaction={handleDeleteTransaction} />
+        <DataManagement transactions={transactions} onImportTransactions={handleImportTransactions} />
       </main>
     </div>
   );
