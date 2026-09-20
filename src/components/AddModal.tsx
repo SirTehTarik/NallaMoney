@@ -154,19 +154,18 @@ export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: O
                 </>
               ) : 'Extract from Receipt 📸'}
             </button>
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              onChange={handleFileUpload} 
-              accept="image/*,application/pdf" 
-              capture="environment"
-              style={{ display: 'none' }} 
-            />
           </div>
           <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 8, background: SURFACE_RAISED, border: `1px solid ${BORDER}`, color: TEXT_MUTED, cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
         </div>
 
         {/* Type toggle */}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          onChange={handleFileUpload} 
+          accept="image/*,application/pdf" 
+          style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }} 
+        />
         <div style={{ display: 'flex', gap: 8, padding: 4, borderRadius: 12, background: SURFACE_RAISED }}>
           {(['expense', 'income'] as const).map(t => (
             <button key={t} onClick={() => { setType(t); setCategory(t === 'income' ? 'Salary' : 'Food') }}
