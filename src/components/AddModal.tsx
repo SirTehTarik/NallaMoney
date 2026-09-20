@@ -163,7 +163,8 @@ export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: O
           type="file" 
           ref={fileInputRef} 
           onChange={handleFileUpload} 
-          accept="image/*,application/pdf" 
+          accept="image/*" 
+          capture="environment"
           style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }} 
         />
         <div style={{ display: 'flex', gap: 8, padding: 4, borderRadius: 12, background: SURFACE_RAISED }}>
