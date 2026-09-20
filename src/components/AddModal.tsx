@@ -5,7 +5,7 @@ import {
   INCOME_COLOR, EXPENSE_COLOR, INCOME_CATS, EXPENSE_CATS,
   PrimaryButton
 } from './ui'
-import { GoogleGenAI } from '@google/genai'
+import { supabase } from '../supabaseClient'
 
 export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: Omit<Transaction, 'id'>) => void }) {
   const [type, setType]               = useState<'income' | 'expense'>('expense')
@@ -29,40 +29,27 @@ export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: O
     setError('');
 
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error('VITE_GEMINI_API_KEY is not set in your .env file.');
-      }
+      // apiKey is no longer needed on the frontend!
 
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = async () => {
         try {
           const base64Data = (reader.result as string).split(',')[1];
-          const ai = new GoogleGenAI({ apiKey });
           
-          const response = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
-            contents: [
-              {
-                role: 'user',
-                parts: [
-                  { inlineData: { data: base64Data, mimeType: file.type } },
-                  { text: 'Extract the transaction details from this receipt. Return a JSON object with: amount (number), category (string matching one of: Food, Transport, Utilities, Entertainment, Shopping, Health, Other), note (string description), and date (string YYYY-MM-DD).' }
-                ]
-              }
-            ],
-            config: {
-              responseMimeType: 'application/json',
-            }
+          const { data, error } = await supabase.functions.invoke('analyze-receipt', {
+            body: { base64Data, mimeType: file.type }
           });
 
-          if (response.text) {
-            const data = JSON.parse(response.text);
-            if (data.amount) setAmount(data.amount.toString());
-            if (data.category && EXPENSE_CATS.includes(data.category)) setCategory(data.category);
-            if (data.note) setNote(data.note);
-            if (data.date) setDate(data.date);
+          if (error) throw error;
+          if (data?.error) throw new Error(data.error);
+
+          if (data?.text) {
+            const parsed = JSON.parse(data.text);
+            if (parsed.amount) setAmount(parsed.amount.toString());
+            if (parsed.category && EXPENSE_CATS.includes(parsed.category)) setCategory(parsed.category);
+            if (parsed.note) setNote(parsed.note);
+            if (parsed.date) setDate(parsed.date);
             setType('expense');
           }
         } catch (err: any) {
