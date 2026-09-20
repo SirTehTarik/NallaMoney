@@ -54,7 +54,7 @@ export function Dashboard({ transactions }: { transactions: Transaction[] }) {
   
   const chartData = Object.entries(timeMap)
     .sort(([, a], [, b]) => a.timestamp - b.timestamp) // sort chronologically
-    .map(([key, data]) => {
+    .map(([_key, data]) => {
       const d = new Date(data.timestamp)
       const label = timeframe === 'monthly'
         ? d.toLocaleDateString('en-US', { month: 'short' })
