@@ -5,7 +5,7 @@ import {
   INCOME_COLOR, EXPENSE_COLOR, INCOME_CATS, EXPENSE_CATS,
   PrimaryButton
 } from './ui'
-import { supabase } from '../supabaseClient'
+import { edgeFunctionsService } from '../services/edgeFunctionsService'
 
 export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: Omit<Transaction, 'id'>) => void }) {
   const [type, setType]               = useState<'income' | 'expense'>('expense')
@@ -37,11 +37,7 @@ export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: O
         try {
           const base64Data = (reader.result as string).split(',')[1];
           
-          const { data, error } = await supabase.functions.invoke('analyze-receipt', {
-            body: { base64Data, mimeType: file.type }
-          });
-
-          if (error) throw error;
+          const data = await edgeFunctionsService.analyzeReceipt(base64Data, file.type);
           if (data?.error) throw new Error(data.error);
 
           if (data?.text) {

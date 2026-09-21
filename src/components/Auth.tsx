@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../supabaseClient';
+import { authService } from '../services/authService';
 import { Card, PrimaryButton, TEXT_PRIMARY, TEXT_MUTED, EXPENSE_COLOR, SURFACE_RAISED, BORDER, BRAND, TEXT_SECONDARY } from './ui';
 
 interface AuthProps {
@@ -21,9 +21,9 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
 
     try {
       if (isSignUp) {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await authService.getUser();
         if (user && user.is_anonymous) {
-          const { data, error } = await supabase.auth.updateUser({ email, password });
+          const { data, error } = await authService.updateUser({ email, password });
           if (error) throw error;
           if (data.user) {
             const isConfirmed = data.user.email_confirmed_at;
@@ -32,7 +32,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
             onSuccess(data.user.id);
           }
         } else {
-          const { data, error } = await supabase.auth.signUp({ email, password });
+          const { data, error } = await authService.signUp({ email, password });
           if (error) throw error;
           if (data.user) {
             const isConfirmed = data.user.email_confirmed_at;
@@ -42,7 +42,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
           }
         }
       } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await authService.signInWithPassword({ email, password });
         if (error) throw error;
         if (data.user) onSuccess(data.user.id);
       }
