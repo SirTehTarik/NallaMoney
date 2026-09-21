@@ -1,5 +1,17 @@
 import { useState } from 'react'
 
+interface ChartTooltipPayload {
+  name?: string | number
+  value?: number | string
+  color?: string
+}
+
+interface ChartTooltipProps {
+  active?: boolean
+  payload?: ChartTooltipPayload[]
+  label?: string | number
+}
+
 export const BRAND = '#2563eb'
 export const INCOME_COLOR = '#60a5fa'
 export const EXPENSE_COLOR = '#f87171'
@@ -143,13 +155,13 @@ export function Chip({ label, color }: { label: string; color: string }) {
   )
 }
 
-export function ChartTooltip({ active, payload, label }: any) {
+export function ChartTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null
   return (
     <div style={{ background: SURFACE_RAISED, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '8px 12px', fontSize: 12, color: TEXT_PRIMARY }}>
       <p style={{ color: TEXT_MUTED, marginBottom: 4, fontWeight: 500 }}>{label}</p>
-      {payload.map((p: any) => (
-        <p key={p.name} style={{ color: p.color }}>{p.name}: {fmt(p.value)}</p>
+      {payload.map((p) => (
+        <p key={String(p.name)} style={{ color: p.color }}>{p.name}: {fmt(Number(p.value))}</p>
       ))}
     </div>
   )

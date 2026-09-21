@@ -14,6 +14,11 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const getErrorMessage = (err: unknown) => {
+    if (err instanceof Error) return err.message;
+    return 'An error occurred during authentication.';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
@@ -46,8 +51,8 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
         if (error) throw error;
         if (data.user) onSuccess(data.user.id);
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'An error occurred during authentication.');
+    } catch (err: unknown) {
+      setErrorMsg(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

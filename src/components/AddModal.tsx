@@ -20,6 +20,10 @@ export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: O
   const [error, setError]             = useState('')
 
   const cats = type === 'income' ? INCOME_CATS : EXPENSE_CATS
+  const getErrorMessage = (err: unknown) => {
+    if (err instanceof Error) return err.message
+    return 'Unknown error'
+  }
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,20 +56,22 @@ export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: O
             if (parsed.date) setDate(parsed.date);
             setType('expense');
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error(err);
-          setError('Failed to extract data: ' + (err.message || 'Unknown error'));
+          setError('Failed to extract data: ' + getErrorMessage(err));
         } finally {
           setExtracting(false);
           if (fileInputRef.current) fileInputRef.current.value = '';
         }
       };
       reader.onerror = () => {
-        throw new Error('Failed to read file');
+        setError('Failed to extract data: Failed to read file');
+        setExtracting(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError('Failed to extract data: ' + (err.message || 'Unknown error'));
+      setError('Failed to extract data: ' + getErrorMessage(err));
       setExtracting(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }

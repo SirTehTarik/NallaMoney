@@ -11,6 +11,23 @@ import { AddModal } from './components/AddModal';
 import { supabase } from './supabaseClient';
 import { BG, BRAND, PrimaryButton } from './components/ui';
 
+interface SavingsGoalRow {
+  id: string;
+  name: string;
+  target_amount: number | string;
+  saved_amount: number | string;
+  deadline: string | null;
+}
+
+interface TransactionRow {
+  id: string;
+  type: TransactionType;
+  amount: number | string;
+  category: string;
+  date: string;
+  description: string | null;
+}
+
 function App() {
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -94,15 +111,23 @@ function App() {
         }
         setMonthlyBudget(budgetValue);
 
-        const { data: serverGoals } = await supabase.from('savings_goals').select('*').order('created_at', { ascending: true });
-        let mappedGoals: SavingsGoal[] = serverGoals ? serverGoals.map((row: any) => ({
+        const { data: serverGoals } = await supabase
+          .from('savings_goals')
+          .select('*')
+          .eq('user_id', activeUserId)
+          .order('created_at', { ascending: true });
+        const mappedGoals: SavingsGoal[] = serverGoals ? (serverGoals as SavingsGoalRow[]).map((row) => ({
           id: row.id, name: row.name, targetAmount: Number(row.target_amount), savedAmount: Number(row.saved_amount), deadline: row.deadline || '',
         })) : [];
 
         setSavingsGoals(mappedGoals);
 
-        const { data: serverTxs } = await supabase.from('transactions').select('*').order('date', { ascending: false });
-        let mappedTxs: Transaction[] = serverTxs ? serverTxs.map((row: any) => ({
+        const { data: serverTxs } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('user_id', activeUserId)
+          .order('date', { ascending: false });
+        const mappedTxs: Transaction[] = serverTxs ? (serverTxs as TransactionRow[]).map((row) => ({
           id: row.id, type: row.type as TransactionType, amount: Number(row.amount), category: row.category, date: row.date, note: row.description || '',
         })) : [];
 
@@ -177,7 +202,7 @@ function App() {
     setSavingsGoals(prev => prev.map(g => (g.id === id ? { ...g, ...updates } : g)));
     if (!userId) return;
     try {
-      const dbUpdates: any = {};
+      const dbUpdates: Record<string, string | number> = {};
       if (updates.name !== undefined) dbUpdates.name = updates.name;
       if (updates.targetAmount !== undefined) dbUpdates.target_amount = updates.targetAmount;
       if (updates.savedAmount !== undefined) dbUpdates.saved_amount = updates.savedAmount;

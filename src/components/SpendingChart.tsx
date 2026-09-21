@@ -29,21 +29,22 @@ export const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) =>
   const circumference = 2 * Math.PI * radius;
 
   const segments = useMemo(() => {
-    let offset = 0;
-    return categoryData.map((cat, i) => {
-      const pct = totalExpenses > 0 ? cat.amount / totalExpenses : 0;
-      const dashLength = pct * circumference;
-      const seg = {
-        color: COLORS[i % COLORS.length],
-        dasharray: `${dashLength} ${circumference - dashLength}`,
-        dashoffset: -offset,
-        name: cat.name,
-        amount: cat.amount,
-        pct,
-      };
-      offset += dashLength;
-      return seg;
-    });
+    return categoryData.reduce<{ offset: number; values: Array<{ color: string; dasharray: string; dashoffset: number; name: string; amount: number; pct: number }> }>(
+      (acc, cat, i) => {
+        const pct = totalExpenses > 0 ? cat.amount / totalExpenses : 0;
+        const dashLength = pct * circumference;
+        acc.values.push({
+          color: COLORS[i % COLORS.length],
+          dasharray: `${dashLength} ${circumference - dashLength}`,
+          dashoffset: -acc.offset,
+          name: cat.name,
+          amount: cat.amount,
+          pct,
+        });
+        return { offset: acc.offset + dashLength, values: acc.values };
+      },
+      { offset: 0, values: [] }
+    ).values;
   }, [categoryData, totalExpenses, circumference]);
 
   if (categoryData.length === 0) {
