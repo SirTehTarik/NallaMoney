@@ -1,20 +1,29 @@
-# Nalla Money 💸
+# NallaMoney
 
-A minimalist, sleek, and private-by-design personal finance and budget manager. 
-
-Built with React, TypeScript, and Vite, Nalla Money provides an intuitive, dark-mode-first interface to track your income, expenses, budgets, and savings goals without relying on complex charting libraries or external databases.
+A modern, responsive financial management application designed to help you track your budget, manage transactions, and set financial goals. 
 
 ## ✨ Features
 
-- **Dashboard & Monthly Trends:** Get a quick overview of your total balance, income, and expenses for the month.
-- **Budget Goal Tracking:** Set a monthly spending limit and see your progress in real-time with visual warnings if you exceed it.
-- **Smart Savings Goals:** Set targets for specific items (like a new laptop or emergency fund) with optional deadlines. The app analyzes your financial habits to predict when you'll reach your goal and tells you exactly how much you need to save to stay on track.
-- **Intuitive Transaction Form:** Quickly add income and expenses with categorized emojis and date selection.
-- **Privacy First (Local Storage):** All your financial data stays exactly where it belongs: on your device. Nalla Money uses your browser's local storage, meaning no data is ever sent to a server.
+- **Interactive Dashboard**: Get a quick overview of your financial health.
+- **Transaction Management**: Easily add, view, and organize your income and expenses.
+- **Budget Goals**: Set and monitor your progress towards your financial goals.
+- **Smart Insights**: Integrated with Google GenAI for intelligent financial assistance.
+- **Data Visualization**: Beautiful charts and graphs powered by Recharts.
+- **Secure Backend**: Uses Supabase for reliable data storage and authentication.
 
-## 🚀 Getting Started
+## 🛠️ Tech Stack
+
+- **Frontend Framework**: [React 19](https://react.dev/) with TypeScript
+- **Build Tool**: [Vite](https://vitejs.dev/)
+- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
+- **Database & Auth**: [Supabase](https://supabase.com/)
+- **AI Integration**: Google GenAI SDK
+- **Charts**: Recharts
+
+## 🏁 Getting Started
 
 ### Prerequisites
+
 Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
 
 ### Installation
@@ -25,24 +34,18 @@ Make sure you have [Node.js](https://nodejs.org/) installed on your machine.
    cd nallamoney
    ```
 
-2. Install dependencies:
+3. Install the dependencies:
    ```bash
    npm install
    ```
 
-3. Start the development server:
+4. Run the development server:
    ```bash
    npm run dev
    ```
 
 4. Open your browser and navigate to `http://localhost:5173` (or the port shown in your terminal).
 
-## 🛠️ Built With
-
-- [React](https://react.dev/) - UI Framework
-- [TypeScript](https://www.typescriptlang.org/) - Type Safety
-- [Vite](https://vitejs.dev/) - Build Tool & Dev Server
-- Pure CSS (No external UI libraries)
 
 ## 📝 License
 
