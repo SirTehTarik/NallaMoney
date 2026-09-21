@@ -11,5 +11,5 @@ git add .
 git commit -m "Initial commit - SOTH website with authentication and password validation"
 
 git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPOSITORY-NAME.git
+git remote add origin https://github.com/SirTehTarik/NallaMoney.git
 git push -u origin main
