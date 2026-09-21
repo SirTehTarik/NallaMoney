@@ -14,22 +14,32 @@ import {
 } from '../constants'
 
 export function Dashboard({ transactions }: { transactions: Transaction[] }) {
-  const [timeframe, setTimeframe] = useState<'monthly' | 'weekly'>('monthly')
+  const [timeframe, setTimeframe] = useState<'monthly' | 'weekly' | 'custom'>('monthly')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
 
-  const totalIncome  = transactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
-  const totalExpense = transactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
+  const filteredTransactions = timeframe === 'custom' 
+    ? transactions.filter(t => {
+        if (startDate && t.date < startDate) return false;
+        if (endDate && t.date > endDate) return false;
+        return true;
+      })
+    : transactions;
+
+  const totalIncome  = filteredTransactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0)
+  const totalExpense = filteredTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0)
   const balance      = totalIncome - totalExpense
 
   const catMap: Record<string, number> = {}
-  transactions.filter(t => t.type === 'expense').forEach(t => {
+  filteredTransactions.filter(t => t.type === 'expense').forEach(t => {
     catMap[t.category] = (catMap[t.category] ?? 0) + t.amount
   })
   const pieData = Object.entries(catMap).map(([name, value]) => ({ name, value }))
-  const recent  = [...transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5)
+  const recent  = [...filteredTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5)
 
   // Derive data for Area Chart
   const timeMap: Record<string, { income: number, expense: number, timestamp: number }> = {}
-  transactions.forEach(t => {
+  filteredTransactions.forEach(t => {
     let timeKey: string;
     let timestamp: number;
     
@@ -37,7 +47,7 @@ export function Dashboard({ transactions }: { transactions: Transaction[] }) {
       const d = new Date(t.date)
       timeKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` // e.g., 2024-09
       timestamp = new Date(d.getFullYear(), d.getMonth(), 1).getTime()
-    } else {
+    } else if (timeframe === 'weekly') {
       const d = new Date(t.date);
       const day = d.getDay();
       const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
@@ -45,6 +55,11 @@ export function Dashboard({ transactions }: { transactions: Transaction[] }) {
       start.setHours(0,0,0,0);
       timeKey = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`
       timestamp = start.getTime();
+    } else {
+      const d = new Date(t.date);
+      timeKey = t.date;
+      d.setHours(0,0,0,0);
+      timestamp = d.getTime();
     }
     
     if (!timeMap[timeKey]) {
@@ -61,7 +76,9 @@ export function Dashboard({ transactions }: { transactions: Transaction[] }) {
       const d = new Date(data.timestamp)
       const label = timeframe === 'monthly'
         ? d.toLocaleDateString('en-US', { month: 'short' })
-        : `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+        : timeframe === 'weekly'
+          ? `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+          : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' });
       return { label, income: data.income, expense: data.expense }
     })
 
@@ -100,7 +117,7 @@ export function Dashboard({ transactions }: { transactions: Transaction[] }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <SectionLabel>Income & Expenses</SectionLabel>
             <div style={{ display: 'flex', gap: 4, background: 'rgba(0,0,0,0.15)', padding: 4, borderRadius: 8, marginTop: -8 }}>
-              {(['weekly', 'monthly'] as const).map(t => (
+              {(['weekly', 'monthly', 'custom'] as const).map(t => (
                 <button
                   key={t}
                   onClick={() => setTimeframe(t)}
@@ -123,6 +140,31 @@ export function Dashboard({ transactions }: { transactions: Transaction[] }) {
               ))}
             </div>
           </div>
+          {timeframe === 'custom' && (
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 16 }}>
+              <input
+                type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                style={{
+                  padding: '6px 12px', borderRadius: 8, fontSize: 12,
+                  background: SURFACE_RAISED, border: `1px solid ${BORDER}`, color: TEXT_PRIMARY,
+                  outline: 'none', colorScheme: 'dark'
+                }}
+              />
+              <span style={{ color: TEXT_MUTED, fontSize: 12 }}>to</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                style={{
+                  padding: '6px 12px', borderRadius: 8, fontSize: 12,
+                  background: SURFACE_RAISED, border: `1px solid ${BORDER}`, color: TEXT_PRIMARY,
+                  outline: 'none', colorScheme: 'dark'
+                }}
+              />
+            </div>
+          )}
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
               <defs>

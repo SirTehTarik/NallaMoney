@@ -15,10 +15,17 @@ export function TransactionView({ transactions, onDelete }: {
 }) {
   const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all')
   const [search, setSearch] = useState('')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   const filtered = transactions
     .filter(t => filter === 'all' || t.type === filter)
+    .filter(t => {
+      if (startDate && t.date < startDate) return false;
+      if (endDate && t.date > endDate) return false;
+      return true;
+    })
     .filter(t =>
       t.note.toLowerCase().includes(search.toLowerCase()) ||
       t.category.toLowerCase().includes(search.toLowerCase())
@@ -57,6 +64,29 @@ export function TransactionView({ transactions, onDelete }: {
           {(['all', 'income', 'expense'] as const).map(f => (
             <FilterTab key={f} label={f} active={filter === f} onClick={() => setFilter(f)} />
           ))}
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            type="date"
+            value={startDate}
+            onChange={e => setStartDate(e.target.value)}
+            style={{
+              padding: '6px 12px', borderRadius: 8, fontSize: 12,
+              background: SURFACE, border: `1px solid ${BORDER}`, color: TEXT_PRIMARY,
+              outline: 'none', colorScheme: 'dark'
+            }}
+          />
+          <span style={{ color: TEXT_MUTED, fontSize: 12 }}>to</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={e => setEndDate(e.target.value)}
+            style={{
+              padding: '6px 12px', borderRadius: 8, fontSize: 12,
+              background: SURFACE, border: `1px solid ${BORDER}`, color: TEXT_PRIMARY,
+              outline: 'none', colorScheme: 'dark'
+            }}
+          />
         </div>
         <input
           placeholder="Search…"
