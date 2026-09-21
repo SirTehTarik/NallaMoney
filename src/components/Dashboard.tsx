@@ -5,10 +5,13 @@ import {
 } from 'recharts'
 import type { Transaction } from '../types'
 import {
-  TEXT_PRIMARY, TEXT_MUTED, TEXT_SECONDARY, BORDER,
-  INCOME_COLOR, EXPENSE_COLOR, EXPENSE_COLORS,
-  fmt, fmtDate, Card, SectionLabel, ChartTooltip, SURFACE_RAISED
+  Card, SectionLabel, ChartTooltip,
 } from './ui'
+import {
+  TEXT_PRIMARY, TEXT_MUTED, TEXT_SECONDARY, BORDER,
+  INCOME_COLOR, EXPENSE_COLOR, EXPENSE_COLORS, SURFACE_RAISED,
+  fmt, fmtDate
+} from '../constants'
 
 export function Dashboard({ transactions }: { transactions: Transaction[] }) {
   const [timeframe, setTimeframe] = useState<'monthly' | 'weekly'>('monthly')
@@ -27,12 +30,12 @@ export function Dashboard({ transactions }: { transactions: Transaction[] }) {
   // Derive data for Area Chart
   const timeMap: Record<string, { income: number, expense: number, timestamp: number }> = {}
   transactions.forEach(t => {
-    let key = '';
-    let timestamp = 0;
+    let timeKey: string;
+    let timestamp: number;
     
     if (timeframe === 'monthly') {
       const d = new Date(t.date)
-      key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` // e.g., 2024-09
+      timeKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}` // e.g., 2024-09
       timestamp = new Date(d.getFullYear(), d.getMonth(), 1).getTime()
     } else {
       const d = new Date(t.date);
@@ -40,21 +43,21 @@ export function Dashboard({ transactions }: { transactions: Transaction[] }) {
       const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
       const start = new Date(d.setDate(diff));
       start.setHours(0,0,0,0);
-      key = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`
+      timeKey = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`
       timestamp = start.getTime();
     }
     
-    if (!timeMap[key]) {
-      timeMap[key] = { income: 0, expense: 0, timestamp }
+    if (!timeMap[timeKey]) {
+      timeMap[timeKey] = { income: 0, expense: 0, timestamp }
     }
     
-    if (t.type === 'income') timeMap[key].income += t.amount
-    else timeMap[key].expense += t.amount
+    if (t.type === 'income') timeMap[timeKey].income += t.amount
+    else timeMap[timeKey].expense += t.amount
   })
   
   const chartData = Object.entries(timeMap)
     .sort(([, a], [, b]) => a.timestamp - b.timestamp) // sort chronologically
-    .map(([_key, data]) => {
+    .map(([, data]) => {
       const d = new Date(data.timestamp)
       const label = timeframe === 'monthly'
         ? d.toLocaleDateString('en-US', { month: 'short' })
@@ -150,7 +153,7 @@ export function Dashboard({ transactions }: { transactions: Transaction[] }) {
                   <Cell key={i} fill={EXPENSE_COLORS[entry.name] ?? '#64748b'} />
                 ))}
               </Pie>
-              <Tooltip formatter={(v: any) => fmt(v as number)} contentStyle={{ background: SURFACE_RAISED, border: `1px solid ${BORDER}`, borderRadius: 10, color: TEXT_PRIMARY, fontSize: 12 }} />
+              <Tooltip formatter={(v: unknown) => fmt(v as number)} contentStyle={{ background: SURFACE_RAISED, border: `1px solid ${BORDER}`, borderRadius: 10, color: TEXT_PRIMARY, fontSize: 12 }} />
             </PieChart>
           </ResponsiveContainer>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 8 }}>

@@ -1,10 +1,13 @@
 import { useState, useRef } from 'react'
 import type { Transaction } from '../types'
 import {
+  Card, GhostButton, Chip
+} from './ui'
+import {
   TEXT_PRIMARY, TEXT_MUTED, TEXT_SECONDARY, BORDER, SURFACE,
   INCOME_COLOR, EXPENSE_COLOR, EXPENSE_COLORS,
-  fmt, fmtDate, Card, GhostButton, Chip
-} from './ui'
+  fmt, fmtDate
+} from '../constants'
 
 export function TransactionView({ transactions, onDelete }: {
   transactions: Transaction[]

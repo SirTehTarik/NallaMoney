@@ -15,13 +15,13 @@ export const transactionService = {
 
     if (!serverTxs) return [];
 
-    return serverTxs.map((row: any) => ({
-      id: row.id,
+    return serverTxs.map((row: Record<string, unknown>) => ({
+      id: String(row.id),
       type: row.type as TransactionType,
       amount: Number(row.amount),
-      category: row.category,
-      date: row.date,
-      note: row.description || '',
+      category: String(row.category),
+      date: String(row.date),
+      note: String(row.description || ''),
     }));
   },
 

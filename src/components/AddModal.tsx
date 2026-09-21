@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react'
 import type { Transaction } from '../types'
 import {
-  TEXT_PRIMARY, TEXT_MUTED, BORDER, SURFACE, SURFACE_RAISED, BG,
-  INCOME_COLOR, EXPENSE_COLOR, INCOME_CATS, EXPENSE_CATS,
   PrimaryButton
 } from './ui'
+import {
+  TEXT_PRIMARY, TEXT_MUTED, BORDER, SURFACE, SURFACE_RAISED, BG,
+  INCOME_COLOR, EXPENSE_COLOR, INCOME_CATS, EXPENSE_CATS,
+} from '../constants'
 import { edgeFunctionsService } from '../services/edgeFunctionsService'
 
 export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: Omit<Transaction, 'id'>) => void }) {
@@ -48,9 +50,10 @@ export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: O
             if (parsed.date) setDate(parsed.date);
             setType('expense');
           }
-        } catch (err: any) {
+        } catch (err: unknown) {
           console.error(err);
-          setError('Failed to extract data: ' + (err.message || 'Unknown error'));
+          const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+          setError('Failed to extract data: ' + errorMsg);
         } finally {
           setExtracting(false);
           if (fileInputRef.current) fileInputRef.current.value = '';
@@ -59,9 +62,10 @@ export function AddModal({ onClose, onAdd }: { onClose: () => void; onAdd: (t: O
       reader.onerror = () => {
         throw new Error('Failed to read file');
       };
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError('Failed to extract data: ' + (err.message || 'Unknown error'));
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      setError('Failed to extract data: ' + errorMsg);
       setExtracting(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }

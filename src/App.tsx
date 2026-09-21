@@ -12,7 +12,8 @@ import { authService } from './services/authService';
 import { transactionService } from './services/transactionService';
 import { goalService } from './services/goalService';
 import { profileService } from './services/profileService';
-import { BG, BRAND, PrimaryButton } from './components/ui';
+import { PrimaryButton } from './components/ui';
+import { BG, BRAND } from './constants';
 
 function App() {
   const [userId, setUserId] = useState<string | null>(null);

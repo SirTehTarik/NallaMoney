@@ -1,34 +1,6 @@
 import { useState } from 'react'
 
-export const BRAND = '#2563eb'
-export const INCOME_COLOR = '#60a5fa'
-export const EXPENSE_COLOR = '#f87171'
-export const TEXT_PRIMARY = '#eff6ff'
-export const TEXT_MUTED = '#93c5fd'
-export const TEXT_SECONDARY = '#bfdbfe'
-export const BORDER = '#1d4ed8'
-export const SURFACE = '#1e40af'
-export const SURFACE_RAISED = '#1d4ed8'
-export const BG = '#1e3a8a'
-
-export const EXPENSE_COLORS: Record<string, string> = {
-  Housing:       '#2563eb',
-  Food:          '#0ea5e9',
-  Transport:     '#8b5cf6',
-  Entertainment: '#f97316',
-  Shopping:      '#eab308',
-  Health:        '#ec4899',
-  Other:         '#94a3b8',
-}
-
-export const INCOME_CATS = ['Salary', 'Freelance', 'Investment', 'Other']
-export const EXPENSE_CATS = ['Food', 'Transport', 'Housing', 'Health', 'Entertainment', 'Shopping', 'Other']
-
-export const fmt = (n: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n)
-
-export const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+import { BRAND, TEXT_PRIMARY, TEXT_MUTED, TEXT_SECONDARY, BORDER, SURFACE, SURFACE_RAISED, BG, fmt } from '../constants'
 
 export function PrimaryButton({ children, onClick, small, type, disabled }: { children: React.ReactNode; onClick?: () => void; small?: boolean; type?: "button" | "submit" | "reset"; disabled?: boolean }) {
   const [pressed, setPressed] = useState(false)
@@ -143,13 +115,15 @@ export function Chip({ label, color }: { label: string; color: string }) {
   )
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function ChartTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null
   return (
     <div style={{ background: SURFACE_RAISED, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '8px 12px', fontSize: 12, color: TEXT_PRIMARY }}>
       <p style={{ color: TEXT_MUTED, marginBottom: 4, fontWeight: 500 }}>{label}</p>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       {payload.map((p: any) => (
-        <p key={p.name} style={{ color: p.color }}>{p.name}: {fmt(p.value)}</p>
+        <p key={p.name} style={{ color: p.color }}>{p.name}: {fmt(p.value as number)}</p>
       ))}
     </div>
   )

@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import type { Session } from '@supabase/supabase-js';
 
 export const authService = {
   async getSession() {
@@ -9,7 +10,7 @@ export const authService = {
     return await supabase.auth.signInAnonymously();
   },
 
-  onAuthStateChange(callback: (event: string, session: any) => void) {
+  onAuthStateChange(callback: (event: string, session: Session | null) => void) {
     return supabase.auth.onAuthStateChange(callback);
   },
 

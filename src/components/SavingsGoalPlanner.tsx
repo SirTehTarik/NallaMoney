@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import type { Transaction, SavingsGoal } from '../types';
-import { Card, PrimaryButton, GhostButton, TEXT_PRIMARY, TEXT_MUTED, EXPENSE_COLOR, INCOME_COLOR, SURFACE_RAISED, BORDER, fmt, TEXT_SECONDARY, BRAND, SURFACE } from './ui';
+import { Card, PrimaryButton, GhostButton } from './ui';
+import { TEXT_PRIMARY, TEXT_MUTED, EXPENSE_COLOR, INCOME_COLOR, SURFACE_RAISED, BORDER, fmt, TEXT_SECONDARY, BRAND, SURFACE } from '../constants';
 
 interface SavingsGoalPlannerProps {
   transactions: Transaction[];

@@ -30,20 +30,22 @@ export const SpendingChart: React.FC<SpendingChartProps> = ({ transactions }) =>
 
   const segments = useMemo(() => {
     let offset = 0;
-    return categoryData.map((cat, i) => {
+    const result = [];
+    for (let i = 0; i < categoryData.length; i++) {
+      const cat = categoryData[i];
       const pct = totalExpenses > 0 ? cat.amount / totalExpenses : 0;
       const dashLength = pct * circumference;
-      const seg = {
+      result.push({
         color: COLORS[i % COLORS.length],
         dasharray: `${dashLength} ${circumference - dashLength}`,
         dashoffset: -offset,
         name: cat.name,
         amount: cat.amount,
         pct,
-      };
+      });
       offset += dashLength;
-      return seg;
-    });
+    }
+    return result;
   }, [categoryData, totalExpenses, circumference]);
 
   if (categoryData.length === 0) {
