@@ -15,12 +15,12 @@ export const goalService = {
 
     if (!serverGoals) return [];
 
-    return serverGoals.map((row: any) => ({
-      id: row.id,
-      name: row.name,
+    return serverGoals.map((row: Record<string, unknown>) => ({
+      id: String(row.id),
+      name: String(row.name),
       targetAmount: Number(row.target_amount),
       savedAmount: Number(row.saved_amount),
-      deadline: row.deadline || '',
+      deadline: row.deadline ? String(row.deadline) : '',
     }));
   },
 
@@ -51,7 +51,7 @@ export const goalService = {
   },
 
   async updateGoal(id: string, updates: Partial<SavingsGoal>): Promise<void> {
-    const dbUpdates: any = {};
+    const dbUpdates: Record<string, unknown> = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.targetAmount !== undefined) dbUpdates.target_amount = updates.targetAmount;
     if (updates.savedAmount !== undefined) dbUpdates.saved_amount = updates.savedAmount;

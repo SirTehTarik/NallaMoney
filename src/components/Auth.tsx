@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { authService } from '../services/authService';
-import { Card, PrimaryButton, TEXT_PRIMARY, TEXT_MUTED, EXPENSE_COLOR, SURFACE_RAISED, BORDER, BRAND, TEXT_SECONDARY } from './ui';
+import { Card, PrimaryButton } from './ui';
+import { TEXT_PRIMARY, TEXT_MUTED, EXPENSE_COLOR, SURFACE_RAISED, BORDER, BRAND, TEXT_SECONDARY } from '../constants';
 
 interface AuthProps {
   onSuccess: (userId: string) => void;
@@ -46,8 +47,12 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
         if (error) throw error;
         if (data.user) onSuccess(data.user.id);
       }
-    } catch (err: any) {
-      setErrorMsg(err.message || 'An error occurred during authentication.');
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setErrorMsg(err.message || 'An error occurred during authentication.');
+      } else {
+        setErrorMsg('An error occurred during authentication.');
+      }
     } finally {
       setLoading(false);
     }

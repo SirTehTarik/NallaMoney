@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { BRAND, BORDER, PrimaryButton } from './ui'
+import { PrimaryButton } from './ui'
+import { BRAND, BORDER } from '../constants'
 
 export type Section = 'dashboard' | 'transactions' | 'budget' | 'profile'
 
