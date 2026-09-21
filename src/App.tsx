@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Transaction, SavingsGoal, TransactionType } from './types';
+import type { Transaction, SavingsGoal } from './types';
 import { Dashboard } from './components/Dashboard';
 import { TransactionView } from './components/TransactionView';
 import { BudgetGoal } from './components/BudgetGoal';
@@ -8,7 +8,10 @@ import { Auth } from './components/Auth';
 import { Navbar } from './components/Navbar';
 import type { Section } from './components/Navbar';
 import { AddModal } from './components/AddModal';
-import { supabase } from './supabaseClient';
+import { authService } from './services/authService';
+import { transactionService } from './services/transactionService';
+import { goalService } from './services/goalService';
+import { profileService } from './services/profileService';
 import { BG, BRAND, PrimaryButton } from './components/ui';
 
 function App() {
@@ -27,14 +30,14 @@ function App() {
   useEffect(() => {
     async function checkSession() {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await authService.getSession();
         if (session?.user) {
           const user = session.user;
           setUserId(user.id);
           setIsAnonymous(user.is_anonymous || !user.email);
           setUserEmail(user.email || null);
         } else {
-          const { data, error } = await supabase.auth.signInAnonymously();
+          const { data, error } = await authService.signInAnonymously();
           if (error) throw error;
           if (data?.user) {
             setUserId(data.user.id);
@@ -50,7 +53,7 @@ function App() {
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = authService.onAuthStateChange((_event, session) => {
       if (session?.user) {
         const user = session.user;
         setUserId(user.id);
@@ -60,7 +63,7 @@ function App() {
         setUserId(null);
         setIsAnonymous(true);
         setUserEmail(null);
-        supabase.auth.signInAnonymously().then(({ data }) => {
+        authService.signInAnonymously().then(({ data }) => {
           if (data?.user) {
             setUserId(data.user.id);
             setIsAnonymous(true);
@@ -81,31 +84,13 @@ function App() {
     async function loadUserData(activeUserId: string) {
       setLoading(true);
       try {
-        let budgetValue = 0;
-        const { data: profileData } = await supabase.from('profiles').select('monthly_budget').eq('id', activeUserId).maybeSingle();
-        
-        if (profileData) {
-          budgetValue = Number(profileData.monthly_budget);
-        } else {
-          const localBudgetStr = localStorage.getItem('nalla-monthly-budget');
-          if (localBudgetStr) budgetValue = parseFloat(localBudgetStr) || 0;
-          await supabase.from('profiles').insert([{ id: activeUserId, monthly_budget: budgetValue }]);
-          localStorage.removeItem('nalla-monthly-budget');
-        }
+        const budgetValue = await profileService.fetchProfile(activeUserId);
         setMonthlyBudget(budgetValue);
 
-        const { data: serverGoals } = await supabase.from('savings_goals').select('*').order('created_at', { ascending: true });
-        let mappedGoals: SavingsGoal[] = serverGoals ? serverGoals.map((row: any) => ({
-          id: row.id, name: row.name, targetAmount: Number(row.target_amount), savedAmount: Number(row.saved_amount), deadline: row.deadline || '',
-        })) : [];
-
+        const mappedGoals = await goalService.fetchGoals();
         setSavingsGoals(mappedGoals);
 
-        const { data: serverTxs } = await supabase.from('transactions').select('*').order('date', { ascending: false });
-        let mappedTxs: Transaction[] = serverTxs ? serverTxs.map((row: any) => ({
-          id: row.id, type: row.type as TransactionType, amount: Number(row.amount), category: row.category, date: row.date, note: row.description || '',
-        })) : [];
-
+        const mappedTxs = await transactionService.fetchTransactions();
         setTransactions(mappedTxs);
       } catch (err) {
         console.error('Error fetching user data:', err);
@@ -121,7 +106,7 @@ function App() {
     setMonthlyBudget(budget);
     if (!userId) return;
     try {
-      await supabase.from('profiles').upsert({ id: userId, monthly_budget: budget });
+      await profileService.upsertProfile(userId, budget);
     } catch (err) {
       console.error('Error saving budget:', err);
     }
@@ -130,14 +115,9 @@ function App() {
   const handleAddTransaction = async (newTx: Omit<Transaction, 'id'>) => {
     if (!userId) return;
     try {
-      const { data } = await supabase.from('transactions').insert([{
-        user_id: userId, amount: newTx.amount, category: newTx.category, description: newTx.note, date: newTx.date, type: newTx.type
-      }]).select().single();
+      const added = await transactionService.addTransaction(userId, newTx);
 
-      if (data) {
-        const added: Transaction = {
-          id: data.id, type: data.type as TransactionType, amount: Number(data.amount), category: data.category, date: data.date, note: data.description || '',
-        };
+      if (added) {
         setTransactions(prev => [added, ...prev].sort((a, b) => b.date.localeCompare(a.date)));
       }
     } catch (err) {
@@ -149,7 +129,7 @@ function App() {
     setTransactions(prev => prev.filter(t => t.id !== id));
     if (!userId) return;
     try {
-      await supabase.from('transactions').delete().eq('id', id);
+      await transactionService.deleteTransaction(id);
     } catch (err) {
       console.error('Error deleting transaction:', err);
     }
@@ -158,14 +138,9 @@ function App() {
   const handleAddGoal = async (goal: Omit<SavingsGoal, 'id'>) => {
     if (!userId) return;
     try {
-      const { data } = await supabase.from('savings_goals').insert([{
-        user_id: userId, name: goal.name, target_amount: goal.targetAmount, saved_amount: goal.savedAmount, deadline: goal.deadline
-      }]).select().single();
+      const added = await goalService.addGoal(userId, goal);
 
-      if (data) {
-        const added: SavingsGoal = {
-          id: data.id, name: data.name, targetAmount: Number(data.target_amount), savedAmount: Number(data.saved_amount), deadline: data.deadline || '',
-        };
+      if (added) {
         setSavingsGoals(prev => [...prev, added]);
       }
     } catch (err) {
@@ -177,12 +152,7 @@ function App() {
     setSavingsGoals(prev => prev.map(g => (g.id === id ? { ...g, ...updates } : g)));
     if (!userId) return;
     try {
-      const dbUpdates: any = {};
-      if (updates.name !== undefined) dbUpdates.name = updates.name;
-      if (updates.targetAmount !== undefined) dbUpdates.target_amount = updates.targetAmount;
-      if (updates.savedAmount !== undefined) dbUpdates.saved_amount = updates.savedAmount;
-      if (updates.deadline !== undefined) dbUpdates.deadline = updates.deadline;
-      await supabase.from('savings_goals').update(dbUpdates).eq('id', id);
+      await goalService.updateGoal(id, updates);
     } catch (err) {
       console.error('Error updating savings goal:', err);
     }
@@ -192,7 +162,7 @@ function App() {
     setSavingsGoals(prev => prev.filter(g => g.id !== id));
     if (!userId) return;
     try {
-      await supabase.from('savings_goals').delete().eq('id', id);
+      await goalService.deleteGoal(id);
     } catch (err) {
       console.error('Error deleting goal:', err);
     }
@@ -242,7 +212,7 @@ function App() {
                 <div style={{ width: '150px' }}>
                   <PrimaryButton onClick={async () => {
                     const confirmLogout = window.confirm("Are you sure you want to sign out?");
-                    if (confirmLogout) await supabase.auth.signOut();
+                    if (confirmLogout) await authService.signOut();
                   }}>Sign Out</PrimaryButton>
                 </div>
               </div>
